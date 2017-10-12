@@ -13,15 +13,20 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations
  * under the License.
+ *
+ *
+ * Type System Class
+ *
+ * Author: Inkeun.kim(eastsideod@gmail.com)
+ *
  */
 
-/*
- * Logging Class.
- *
- * TODO(inkeun): write log file.
- *
- * Author: eastsideod(Inkeun Kim)
- */
+/* DISABLE LINTS */
+/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable semi */
+
+
 module.exports = {
   setLoggingLevel: internalSetLoggingLevel,
   debug: logDebug,
@@ -29,16 +34,12 @@ module.exports = {
   warn: logWarn,
   warning: logWarn, /* alias warn */
   error: logError,
-  assert: console.assert,
+  assert: console.assert
 }
 
 
-const LOGGING_LEVELS = {
-  'DEBUG': 0, 'INFO': 1, 'WARNING': 2, 'ERROR': 3,
-};
-
-
-const COLORS = {
+const kLoggingLevels = { 'DEBUG': 0, 'INFO': 1, 'WARNING': 2, 'ERROR': 3 };
+const kColors = {
   'DEBUG': '\x1b[0m',
   'INFO': '\x1b[0m',
   'WARNING': '\x1b[33m',
@@ -46,13 +47,13 @@ const COLORS = {
 };
 
 
-var LOGGING_LEVEL = 0;
+var theLoggingLevel = 0;
 
 
 function isValidLoggingLevel(loggingLevel) {
-  var keys = Object.keys(LOGGING_LEVELS);
-  return (keys.filter(function(ValidloggingLevel){
-    if (ValidloggingLevel == loggingLevel) {
+  var keys = Object.keys(kLoggingLevels);
+  return (keys.filter(function(ValidloggingLevel) {
+    if (ValidloggingLevel === loggingLevel) {
       return true;
     }
   }).length > 0);
@@ -61,20 +62,20 @@ function isValidLoggingLevel(loggingLevel) {
 
 function internalSetLoggingLevel(loggingLevel) {
   console.assert(isValidLoggingLevel(loggingLevel));
-  LOGGING_LEVEL = LOGGING_LEVELS[loggingLevel];
+  theLoggingLevel = kLoggingLevels[loggingLevel];
 }
 
 
 function setLoggingText(level, data) {
   var loggingTextArray = [
-    COLORS[level], '[', new Date().toLocaleString(), level, ']'].concat(
+    kColors[level], '[', new Date().toLocaleString(), level, ']'].concat(
     Array.from(data));
   return loggingTextArray;
 }
 
 
 function logDebug() {
-  if (LOGGING_LEVEL > LOGGING_LEVELS['DEBUG']) {
+  if (theLoggingLevel > kLoggingLevels['DEBUG']) {
     return;
   }
 
@@ -83,7 +84,7 @@ function logDebug() {
 
 
 function logInfo() {
-  if (LOGGING_LEVEL > LOGGING_LEVELS['INFO']) {
+  if (theLoggingLevel > kLoggingLevels['INFO']) {
     return;
   }
 
@@ -92,7 +93,7 @@ function logInfo() {
 
 
 function logWarn() {
-  if (LOGGING_LEVEL > LOGGING_LEVELS['WARNING']) {
+  if (theLoggingLevel > kLoggingLevels['WARNING']) {
     return;
   }
 
@@ -101,7 +102,7 @@ function logWarn() {
 
 
 function logError() {
-  if (LOGGING_LEVEL > LOGGING_LEVELS['ERROR']) {
+  if (theLoggingLevel > kLoggingLevels['ERROR']) {
     return;
   }
 

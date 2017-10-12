@@ -1,49 +1,49 @@
-module.exports = {
-  createLockContext: function(key, context, cb) {
-    return new LockContext(undefined, key, context, cb);
-  },
+/* eslint-disable no-multiple-empty-lines */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable semi */
 
-};
 
-/*
- *
- * INTERNAL
- *
- */
-
-// import 3rd party
 var Redis = require('redis');
 
-// import project lib
 var Logging = require('../system/logging');
-var Type = require('../system/types');
+var Type = require('../system/type');
 
 
-var ASSERT = Logging.assert;
-var DEFAULT_TIMEOUT = 2;
+module.exports = {
+  createLockContext: function(redisClient, key, context, cb) {
+    ASSERT(Type.isInstanceOf(redisClient, Redis.RedisClient));
+    ASSERT(Type.isString(key));
+    ASSERT(Type.isObject(context) && ValidateContext(context));
+    ASSERT(Type.isFunction(cb));
+    return new LockContext(redisClient, key, context, cb);
+  }
+};
 
 
-function LockContext(/*redisClient*/ redisClient, /*string*/ key,
-                     /*object*/ context, /*function*/ cb) {
+const ASSERT = Logging.assert;
+const kDefaultTimeOut = 2;
+
+
+function LockContext(/* redisClient */ redisClient, /* string */ key,
+                     /* object */ context, /* function */ cb) {
   var me = this;
-  // me.redisClient = redisClient;
+  me.redisClient = redisClient;
   me.key = key;
   me.context = context;
   me.cb = cb;
-  me.redisClient = Redis.createClient(6379, '127.0.0.1');
 
   me.onSetNXCompleted = function(error, reply) {
     // has error
     if (error) {
-      cb({
+      me.cb({
         'result': false,
         'error': error
       });
       return;
     // can't set value.
     } else if (reply <= 0) {
-      cb({
-        'result': false,
+      me.cb({
+        'result': false
       });
       return;
     }
@@ -52,11 +52,11 @@ function LockContext(/*redisClient*/ redisClient, /*string*/ key,
     if (context.timeout) {
       me.redisClient.expire(key, context.timeout);
     } else {
-      me.redisClient.expire(key, DEFAULT_TIMEOUT);
+      me.redisClient.expire(key, kDefaultTimeOut);
     }
 
     Logging.debug('Aquired lock. owner=', context.owner);
-    cb({'result': true});
+    me.cb({'result': true});
   }
 
   me.lock = function() {
@@ -71,8 +71,17 @@ function LockContext(/*redisClient*/ redisClient, /*string*/ key,
       if (error) {
         ASSERT(false, 'Failed to unlock.');
       }
-      console.log(data);
       me.redisClient.del(me.key);
     });
   }
+}
+
+
+function ValidateContext(context) {
+  if (context['timeout']) {
+    if (!Type.isNumber(context.timeout)) {
+      return false;
+    }
+  }
+  return true;
 }
